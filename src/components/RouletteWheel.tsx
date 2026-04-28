@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Segment } from "@/types/roulette";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
 
 interface Props {
   segments: Segment[];
@@ -21,6 +22,23 @@ const arcPath = (cx: number, cy: number, r: number, start: number, end: number) 
   const large = end - start <= 180 ? 0 : 1;
   return `M ${cx} ${cy} L ${s.x} ${s.y} A ${r} ${r} 0 ${large} 0 ${e.x} ${e.y} Z`;
 };
+
+function SliceImage({ seg, cx, cy, r }: { seg: Segment; cx: number; cy: number; r: number }) {
+  const url = useMediaUrl(seg.mediaUrl);
+  if (!url) return null;
+  return (
+    <image
+      href={url}
+      x={cx - r}
+      y={cy - r}
+      width={r * 2}
+      height={r * 2}
+      preserveAspectRatio="xMidYMid slice"
+      clipPath={`url(#clip-${seg.id})`}
+      opacity={0.45}
+    />
+  );
+}
 
 export default function RouletteWheel({ segments, size = 360, spinning, targetIndex, onComplete, soundEnabled }: Props) {
   const [rotation, setRotation] = useState(0);
@@ -131,16 +149,7 @@ export default function RouletteWheel({ segments, size = 360, spinning, targetIn
             <g key={seg.id}>
               <path d={path} fill={seg.color} opacity={0.95} />
               {seg.mediaUrl && seg.mediaType === "image" && (
-                <image
-                  href={seg.mediaUrl}
-                  x={cx - r}
-                  y={cy - r}
-                  width={r * 2}
-                  height={r * 2}
-                  preserveAspectRatio="xMidYMid slice"
-                  clipPath={`url(#clip-${seg.id})`}
-                  opacity={0.45}
-                />
+                <SliceImage seg={seg} cx={cx} cy={cy} r={r} />
               )}
               <path d={path} fill="none" stroke="hsl(var(--background))" strokeWidth={2} />
               {sliceAngle > 12 && (

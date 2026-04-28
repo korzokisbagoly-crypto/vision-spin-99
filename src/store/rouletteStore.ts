@@ -43,6 +43,34 @@ const seedRoulette = (): Roulette => ({
   spinCount: 0,
 });
 
+// One-time cleanup: older versions stored full data: URLs (often videos) inside
+// localStorage, which blows past the 5MB quota and corrupts subsequent writes.
+// Strip any legacy data: URLs from segments before the store rehydrates so we
+// can recover gracefully. Users will need to re-upload affected media.
+if (typeof window !== "undefined") {
+  try {
+    const raw = localStorage.getItem("loop-roulettes");
+    if (raw && raw.includes('"data:')) {
+      const parsed = JSON.parse(raw);
+      const state = parsed?.state;
+      if (state?.roulettes) {
+        state.roulettes = state.roulettes.map((r: Roulette) => ({
+          ...r,
+          segments: (r.segments ?? []).map((s) =>
+            typeof s.mediaUrl === "string" && s.mediaUrl.startsWith("data:")
+              ? { ...s, mediaUrl: undefined, mediaType: undefined }
+              : s
+          ),
+        }));
+        localStorage.setItem("loop-roulettes", JSON.stringify(parsed));
+      }
+    }
+  } catch {
+    // If parsing fails, drop the corrupt entry entirely.
+    try { localStorage.removeItem("loop-roulettes"); } catch {}
+  }
+}
+
 export const useRouletteStore = create<State>()(
   persist(
     (set, get) => ({

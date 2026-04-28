@@ -6,7 +6,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/vision-spin-99/",
+  base: mode === "production" ? "/vision-spin-99/" : "/",
   server: {
     host: "::",
     port: 8080,

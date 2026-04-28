@@ -1,11 +1,14 @@
 import { useRef, useState } from "react";
 import { Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { putMedia, deleteMedia } from "@/lib/mediaStore";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
+import { toast } from "sonner";
 
 interface Props {
-  value?: string;
+  value?: string; // media id (or legacy data URL)
   type?: "image" | "video";
-  onChange: (dataUrl: string | undefined, type: "image" | "video" | undefined) => void;
+  onChange: (mediaId: string | undefined, type: "image" | "video" | undefined) => void;
   className?: string;
   compact?: boolean;
 }
@@ -13,12 +16,32 @@ interface Props {
 export default function MediaUpload({ value, type, onChange, className, compact }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const previewUrl = useMediaUrl(value);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     const isVideo = file.type.startsWith("video");
-    const reader = new FileReader();
-    reader.onload = () => onChange(reader.result as string, isVideo ? "video" : "image");
-    reader.readAsDataURL(file);
+    setBusy(true);
+    try {
+      // If replacing existing IndexedDB media, clean it up.
+      if (value && !/^(data:|blob:|https?:)/.test(value)) {
+        deleteMedia(value).catch(() => {});
+      }
+      const id = await putMedia(file);
+      onChange(id, isVideo ? "video" : "image");
+    } catch (err) {
+      console.error("Upload failed", err);
+      toast.error("Could not save media. Try a smaller file.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRemove = () => {
+    if (value && !/^(data:|blob:|https?:)/.test(value)) {
+      deleteMedia(value).catch(() => {});
+    }
+    onChange(undefined, undefined);
   };
 
   return (
@@ -41,13 +64,13 @@ export default function MediaUpload({ value, type, onChange, className, compact 
       {value ? (
         <>
           {type === "video" ? (
-            <video src={value} className="h-full w-full object-cover" muted />
+            <video src={previewUrl} className="h-full w-full object-cover" muted playsInline />
           ) : (
-            <img src={value} alt="upload" className="h-full w-full object-cover" />
+            <img src={previewUrl} alt="upload" className="h-full w-full object-cover" />
           )}
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); onChange(undefined, undefined); }}
+            onClick={(e) => { e.stopPropagation(); handleRemove(); }}
             className="absolute top-1 right-1 rounded-full bg-background/90 p-1 shadow-soft hover:bg-background"
             aria-label="Remove media"
           >
@@ -57,7 +80,7 @@ export default function MediaUpload({ value, type, onChange, className, compact 
       ) : (
         <div className="flex flex-col items-center gap-1 text-muted-foreground p-2 text-center">
           <Upload className={compact ? "h-4 w-4" : "h-6 w-6"} />
-          {!compact && <span className="text-xs">Tap or drop media</span>}
+          {!compact && <span className="text-xs">{busy ? "Saving…" : "Tap or drop media"}</span>}
         </div>
       )}
       <input

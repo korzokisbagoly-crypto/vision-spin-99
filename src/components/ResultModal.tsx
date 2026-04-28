@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { Segment } from "@/types/roulette";
 import { Button } from "@/components/ui/button";
+import { useMediaUrl } from "@/hooks/useMediaUrl";
 
 interface Props {
   segment: Segment | null;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function ResultModal({ segment, open, onClose, onSpinAgain }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaUrl = useMediaUrl(segment?.mediaUrl);
 
   useEffect(() => {
     if (open && videoRef.current) {
@@ -28,7 +30,7 @@ export default function ResultModal({ segment, open, onClose, onSpinAgain }: Pro
         });
       }, 150);
     }
-  }, [open, segment]);
+  }, [open, segment, mediaUrl]);
 
   if (!open || !segment) return null;
 
@@ -53,11 +55,11 @@ export default function ResultModal({ segment, open, onClose, onSpinAgain }: Pro
           className="relative aspect-square w-full"
           style={{ background: segment.color }}
         >
-          {segment.mediaUrl ? (
+          {segment.mediaUrl && mediaUrl ? (
             segment.mediaType === "video" ? (
               <video
                 ref={videoRef}
-                src={segment.mediaUrl}
+                src={mediaUrl}
                 className="h-full w-full object-cover"
                 autoPlay
                 loop
@@ -66,7 +68,7 @@ export default function ResultModal({ segment, open, onClose, onSpinAgain }: Pro
                 controls
               />
             ) : (
-              <img src={segment.mediaUrl} alt={segment.label} className="h-full w-full object-cover" />
+              <img src={mediaUrl} alt={segment.label} className="h-full w-full object-cover" />
             )
           ) : (
             <div className="flex h-full w-full items-center justify-center text-9xl">

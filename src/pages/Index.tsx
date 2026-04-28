@@ -36,22 +36,22 @@ const Index = () => {
             <Sparkles className="h-3 w-3" />
             <span>A vision board for intentional living</span>
           </div>
-          <h1 className="font-serif text-4xl sm:text-5xl mb-4 leading-tight">
+          <h1 className="font-serif text-3xl sm:text-5xl mb-4 leading-tight">
             Your moments,<br/>chosen by chance.
           </h1>
-          <p className="text-muted-foreground text-lg leading-relaxed">
+          <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
             Build calm, beautiful roulettes from your own photos and videos.
             Spin to choose your next ritual, workout, or small decision.
           </p>
         </section>
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between gap-3 mb-8">
           <h2 className="font-serif text-2xl">Your boards</h2>
           <Button
             onClick={handleCreate}
-            className="rounded-full bg-primary hover:bg-primary/90 shadow-soft gap-2"
+            className="rounded-full bg-primary hover:bg-primary/90 shadow-soft gap-2 shrink-0"
           >
-            <Plus className="h-4 w-4" /> New board
+            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">New board</span><span className="sm:hidden">New</span>
           </Button>
         </div>
 

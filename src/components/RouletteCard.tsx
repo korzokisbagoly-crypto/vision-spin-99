@@ -59,7 +59,7 @@ export default function RouletteCard({ roulette, onDuplicate, onDelete }: Props)
         </div>
       </Link>
 
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-smooth">
+      <div className="absolute top-3 right-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-smooth">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button

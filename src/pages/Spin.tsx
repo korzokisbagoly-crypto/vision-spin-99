@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Pencil, ArrowLeft } from "lucide-react";
 import Header from "@/components/Header";
@@ -17,6 +17,22 @@ export default function Spin() {
   const [spinning, setSpinning] = useState(false);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
+  const wheelContainerRef = useRef<HTMLDivElement>(null);
+  const [wheelSize, setWheelSize] = useState(360);
+
+  useEffect(() => {
+    const el = wheelContainerRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      setWheelSize(Math.max(240, Math.min(420, w)));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener("resize", update);
+    return () => { ro.disconnect(); window.removeEventListener("resize", update); };
+  }, [roulette]);
 
   useEffect(() => {
     if (!roulette && id) {
@@ -74,17 +90,17 @@ export default function Spin() {
           <ArrowLeft className="h-4 w-4" /> All boards
         </Link>
 
-        <div className="flex items-start justify-between mb-10 animate-fade-in">
-          <div>
+        <div className="flex items-start justify-between gap-3 mb-10 animate-fade-in">
+          <div className="min-w-0">
             <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
               {roulette.segments.length} segments · {roulette.spinCount} spins
             </div>
-            <h1 className="font-serif text-4xl">
+            <h1 className="font-serif text-3xl sm:text-4xl break-words">
               {roulette.emoji && <span className="mr-2">{roulette.emoji}</span>}
               {roulette.name}
             </h1>
           </div>
-          <Button asChild variant="ghost" size="sm" className="rounded-full">
+          <Button asChild variant="ghost" size="sm" className="rounded-full shrink-0">
             <Link to={`/r/${roulette.id}/edit`}>
               <Pencil className="h-4 w-4 mr-1.5" /> Edit
             </Link>
@@ -101,10 +117,10 @@ export default function Spin() {
             </div>
           ) : (
             <>
-              <div className="relative">
+              <div ref={wheelContainerRef} className="relative w-full max-w-[420px] flex justify-center">
                 <RouletteWheel
                   segments={roulette.segments}
-                  size={Math.min(420, typeof window !== "undefined" ? window.innerWidth - 60 : 360)}
+                  size={wheelSize}
                   spinning={spinning}
                   targetIndex={targetIndex}
                   onComplete={handleComplete}

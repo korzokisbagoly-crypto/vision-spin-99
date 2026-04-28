@@ -19,6 +19,17 @@ export type Roulette = {
   spinCount: number;
   lastSpinDate?: string; // YYYY-MM-DD
   spinsToday?: number;
+  history?: HistoryEntry[]; // most-recent-first, cap 3
+};
+
+export type HistoryEntry = {
+  segmentId: string;
+  label: string;
+  emoji?: string;
+  color: string;
+  mediaUrl?: string;
+  mediaType?: "image" | "video";
+  at: number;
 };
 
 export const PALETTE = [

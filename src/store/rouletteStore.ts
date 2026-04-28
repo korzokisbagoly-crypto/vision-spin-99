@@ -18,7 +18,7 @@ interface State {
   addSegment: (rouletteId: string, segment?: Partial<Segment>) => void;
   updateSegment: (rouletteId: string, segmentId: string, patch: Partial<Segment>) => void;
   removeSegment: (rouletteId: string, segmentId: string) => void;
-  registerSpin: (rouletteId: string) => void;
+  registerSpin: (rouletteId: string, segmentId?: string) => void;
   toggleDiscipline: () => void;
   setDailyLimit: (n: number) => void;
   toggleSound: () => void;
@@ -167,13 +167,28 @@ export const useRouletteStore = create<State>()(
           ),
         })),
 
-      registerSpin: (rouletteId) =>
+      registerSpin: (rouletteId, segmentId) =>
         set((s) => ({
           roulettes: s.roulettes.map((r) => {
             if (r.id !== rouletteId) return r;
             const t = today();
             const spinsToday = r.lastSpinDate === t ? (r.spinsToday ?? 0) + 1 : 1;
-            return { ...r, spinCount: r.spinCount + 1, lastSpinDate: t, spinsToday };
+            const seg = segmentId ? r.segments.find((x) => x.id === segmentId) : undefined;
+            const history = seg
+              ? [
+                  {
+                    segmentId: seg.id,
+                    label: seg.label,
+                    emoji: seg.emoji,
+                    color: seg.color,
+                    mediaUrl: seg.mediaUrl,
+                    mediaType: seg.mediaType,
+                    at: Date.now(),
+                  },
+                  ...(r.history ?? []),
+                ].slice(0, 3)
+              : r.history;
+            return { ...r, spinCount: r.spinCount + 1, lastSpinDate: t, spinsToday, history };
           }),
         })),
 

@@ -7,6 +7,7 @@ import ResultModal from "@/components/ResultModal";
 import { Button } from "@/components/ui/button";
 import { useRouletteStore } from "@/store/rouletteStore";
 import { toast } from "sonner";
+import type { Segment } from "@/types/roulette";
 
 export default function Spin() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +18,7 @@ export default function Spin() {
   const [spinning, setSpinning] = useState(false);
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
+  const [historySegment, setHistorySegment] = useState<Segment | null>(null);
   const wheelContainerRef = useRef<HTMLDivElement>(null);
   const [wheelSize, setWheelSize] = useState(360);
 
@@ -76,11 +78,17 @@ export default function Spin() {
 
   const handleComplete = () => {
     setSpinning(false);
-    registerSpin(roulette.id);
+    if (targetIndex !== null) {
+      registerSpin(roulette.id, roulette.segments[targetIndex].id);
+    } else {
+      registerSpin(roulette.id);
+    }
     setTimeout(() => setResultOpen(true), 250);
   };
 
-  const selected = targetIndex !== null ? roulette.segments[targetIndex] : null;
+  const liveSelected = targetIndex !== null ? roulette.segments[targetIndex] : null;
+  const selected = historySegment ?? liveSelected;
+  const history = roulette.history ?? [];
 
   return (
     <div className="min-h-screen bg-warm">
@@ -142,6 +150,46 @@ export default function Spin() {
                   Discipline mode · {spinsToday} / {dailyLimit} spins today
                 </div>
               )}
+
+              {history.length > 0 && (
+                <div className="w-full">
+                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-3 text-center">
+                    Last {history.length} winner{history.length > 1 ? "s" : ""}
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {history.map((h, i) => (
+                      <button
+                        key={`${h.segmentId}-${h.at}`}
+                        onClick={() => {
+                          setHistorySegment({
+                            id: h.segmentId,
+                            label: h.label,
+                            emoji: h.emoji,
+                            color: h.color,
+                            weight: 1,
+                            mediaUrl: h.mediaUrl,
+                            mediaType: h.mediaType,
+                          });
+                          setResultOpen(true);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-sm shadow-soft transition-smooth hover:scale-105"
+                        title={new Date(h.at).toLocaleString()}
+                      >
+                        <span
+                          className="inline-block h-2.5 w-2.5 rounded-full"
+                          style={{ background: h.color }}
+                          aria-hidden
+                        />
+                        {h.emoji && <span>{h.emoji}</span>}
+                        <span className="max-w-[10rem] truncate">{h.label}</span>
+                        {i === 0 && (
+                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">latest</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -150,8 +198,8 @@ export default function Spin() {
       <ResultModal
         segment={selected}
         open={resultOpen}
-        onClose={() => setResultOpen(false)}
-        onSpinAgain={() => { setResultOpen(false); setTimeout(handleSpin, 300); }}
+        onClose={() => { setResultOpen(false); setHistorySegment(null); }}
+        onSpinAgain={() => { setResultOpen(false); setHistorySegment(null); setTimeout(handleSpin, 300); }}
       />
     </div>
   );

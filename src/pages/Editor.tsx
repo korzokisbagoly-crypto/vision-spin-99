@@ -100,7 +100,7 @@ export default function Editor() {
           <div className="space-y-3">
             {roulette.segments.map((seg, idx) => (
               <div key={seg.id} className="rounded-2xl bg-card shadow-soft p-4 sm:p-5 animate-fade-in">
-                <div className="flex gap-4 items-start">
+                <div className="flex gap-3 sm:gap-4 items-start">
                   <MediaUpload
                     value={seg.mediaUrl}
                     type={seg.mediaType}
@@ -114,13 +114,13 @@ export default function Editor() {
                         onChange={(e) => updateSegment(roulette.id, seg.id, { emoji: e.target.value })}
                         placeholder="🍵"
                         maxLength={4}
-                        className="w-16 text-center rounded-xl"
+                        className="w-14 sm:w-16 text-center rounded-xl shrink-0"
                       />
                       <Input
                         value={seg.label}
                         onChange={(e) => updateSegment(roulette.id, seg.id, { label: e.target.value })}
                         placeholder={`Segment ${idx + 1}`}
-                        className="rounded-xl flex-1"
+                        className="rounded-xl flex-1 min-w-0"
                       />
                     </div>
                     <div className="flex items-center gap-3">

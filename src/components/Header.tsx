@@ -6,7 +6,7 @@ export default function Header() {
   const isHome = loc.pathname === "/";
   return (
     <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/60">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="h-8 w-8 rounded-full bg-sage flex items-center justify-center text-primary-foreground font-serif text-sm">
             ◐

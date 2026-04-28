@@ -15,7 +15,18 @@ export default function ResultModal({ segment, open, onClose, onSpinAgain }: Pro
 
   useEffect(() => {
     if (open && videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      const v = videoRef.current;
+      v.muted = true;
+      const tryPlay = () => v.play().catch(() => {});
+      tryPlay();
+      // Try unmuted shortly after; if blocked, stay muted
+      setTimeout(() => {
+        v.muted = false;
+        v.play().catch(() => {
+          v.muted = true;
+          tryPlay();
+        });
+      }, 150);
     }
   }, [open, segment]);
 
@@ -51,6 +62,7 @@ export default function ResultModal({ segment, open, onClose, onSpinAgain }: Pro
                 autoPlay
                 loop
                 playsInline
+                muted
                 controls
               />
             ) : (
